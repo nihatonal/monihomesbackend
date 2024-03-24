@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const https = require('https');
 const Guest = require("../models/guest");
+const Price = require("../models/prices");
 const User = require("../models/user");
 const guest = require("../models/guest");
 const nodeoutlook = require("nodejs-nodemailer-outlook");
@@ -57,7 +58,7 @@ const get_reviews = async (req, res, next) => {
     });
     ress.on('end', () => {
       data = JSON.parse(data);
-      // console.log(data);
+      //console.log(data);
       res.json({
         data,
       });
@@ -268,6 +269,74 @@ const send_mail = async (req, res, next) => {
 };
 
 
+
+const get_prices = async (req, res, next) => {
+
+
+  let prices;
+
+
+  try {
+    prices = await Price.find({}, "-password");
+  } catch (err) {
+    const error = new HttpError(
+      "Fetching users failed, please try again later.",
+      500
+    );
+    return next(error);
+  }
+  res.json({ prices: prices.map((price) => price.toObject({ getters: true })) });
+};
+
+const save_prices = async (req, res, next) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return next(
+      new HttpError("Invalid inputs passed, please check your data.", 422)
+    );
+  }
+  const { price } = req.body;
+
+  let new_price;
+  try {
+    new_price = await Price.findById(process.env.PRICE_ID);
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrong, could not update car.",
+      500
+    );
+    return next(error);
+  }
+
+  new_price.price = price ;
+  try {
+    await new_price.save();
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrong, could not update car!!.",
+      500
+    );
+    return next(error);
+  }
+  // let createdPrice;
+  // try {
+  //   createdPrice = new Price({
+  //     price: price,
+  //   });
+  //   await createdPrice.save();
+  // } catch (err) {
+  //   const error = new HttpError("Failed, please try again.", 500);
+  //   console.log(err);
+  //   return next(error);
+  // }
+  // res.status(201).json({ prices: createdPrice });
+   res.status(200).json({ price });
+
+
+}
+
+
 exports.login = login;
 exports.send_mail = send_mail;
 exports.signup = signup;
@@ -275,10 +344,5 @@ exports.get_reviews = get_reviews;
 exports.save_dates = save_dates;
 exports.get_dates = get_dates;
 exports.deleteDate = deleteDate;
-
-// `
-// From: monihomes
-// Subject: Misafir kayitlari
-
-// Message: ${message}
-// `
+exports.save_prices = save_prices;
+exports.get_prices = get_prices;
