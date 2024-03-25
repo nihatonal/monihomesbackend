@@ -296,11 +296,12 @@ const save_prices = async (req, res, next) => {
       new HttpError("Invalid inputs passed, please check your data.", 422)
     );
   }
-  const { price } = req.body;
+  const { price,id } = req.body;
 
   let new_price;
+
   try {
-    new_price = await Price.findById(process.env.PRICE_ID);
+    new_price = await Price.findById(id);
   } catch (err) {
     const error = new HttpError(
       "Something went wrong, could not update car.",
@@ -310,6 +311,7 @@ const save_prices = async (req, res, next) => {
   }
 
   new_price.price = price ;
+  console.log(price,id)
   try {
     await new_price.save();
   } catch (err) {
