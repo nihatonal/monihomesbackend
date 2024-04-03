@@ -9,29 +9,29 @@ const Price = require("../models/prices");
 const User = require("../models/user");
 const guest = require("../models/guest");
 const nodeoutlook = require("nodejs-nodemailer-outlook");
-//////////
-const { google } = require('googleapis');
 
-// const auth = new google.auth.GoogleAuth({
-//   keyFile: '/google_oath.json',
-//   scopes: ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/plus.business.manage'],
-// });
-// console.log(auth)
+// console.log(service.events.list)
 
-// var request = {
-//   placeId: 'ChIJh_WzFH1BwBQRKxywcvDfSMs',
-//   fields: ['name', 'rating', 'formatted_phone_number', 'geometry']
-// };
+const google_calendar = async (req, res, next) => {
 
-// const service = new google.maps.places.PlacesService(map);
-// service.getDetails(request, callback);
+  const url2 = `https://www.googleapis.com/calendar/v3/calendars/${process.env.CALENDAR_ID}/events?key=${process.env.CALENDAR_API}`
+  https.get(url2, ress => {
+    let data = '';
+    ress.on('data', chunk => {
+      data += chunk;
+    });
+    ress.on('end', () => {
+      data = JSON.parse(data);
+      res.json({
+        data,
+      });
+    })
+  }).on('error', err => {
+    console.log(err.message);
+  })
 
-// function callback(place, status) {
-//   if (status == google.maps.places.PlacesServiceStatus.OK) {
-//       createMarker(place);
-//       console.log(place)
-//   }
-// }
+}
+
 ////////////////////
 const get_dates = async (req, res, next) => {
   let guests;
@@ -296,11 +296,12 @@ const save_prices = async (req, res, next) => {
       new HttpError("Invalid inputs passed, please check your data.", 422)
     );
   }
-  const { price } = req.body;
+  const { price, id } = req.body;
 
   let new_price;
+
   try {
-    new_price = await Price.findById(process.env.PRICE_ID);
+    new_price = await Price.findById(id);
   } catch (err) {
     const error = new HttpError(
       "Something went wrong, could not update car.",
@@ -309,7 +310,8 @@ const save_prices = async (req, res, next) => {
     return next(error);
   }
 
-  new_price.price = price ;
+  new_price.price = price;
+  console.log(price, id)
   try {
     await new_price.save();
   } catch (err) {
@@ -331,10 +333,12 @@ const save_prices = async (req, res, next) => {
   //   return next(error);
   // }
   // res.status(201).json({ prices: createdPrice });
-   res.status(200).json({ price });
+  res.status(200).json({ price });
 
 
 }
+
+
 
 
 exports.login = login;
@@ -346,3 +350,4 @@ exports.get_dates = get_dates;
 exports.deleteDate = deleteDate;
 exports.save_prices = save_prices;
 exports.get_prices = get_prices;
+exports.google_calendar = google_calendar;
