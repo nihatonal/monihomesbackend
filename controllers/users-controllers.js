@@ -13,7 +13,7 @@ const nodeoutlook = require("nodejs-nodemailer-outlook");
 // console.log(service.events.list)
 
 const google_calendar = async (req, res, next) => {
-
+  console.log("send")
   const url2 = `https://www.googleapis.com/calendar/v3/calendars/${process.env.CALENDAR_ID}/events?key=${process.env.CALENDAR_API}`
   https.get(url2, ress => {
     let data = '';
